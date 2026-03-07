@@ -4,11 +4,11 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"vite\" \"wrangler dev\"",
+    "dev": "concurrently \"vite\" \"wrangler pages dev dist\"",
     "dev:client": "vite",
-    "dev:worker": "wrangler dev",
+    "dev:worker": "wrangler pages dev dist",
     "build": "tsc -b && vite build",
-    "deploy:worker": "wrangler deploy",
+    "deploy": "npm run build && wrangler pages deploy dist",
     "lint": "eslint .",
     "preview": "vite preview"
   },

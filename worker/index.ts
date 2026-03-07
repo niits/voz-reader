@@ -33,9 +33,17 @@ function corsHeaders(origin?: string | null): Record<string, string> {
   return {
     "Access-Control-Allow-Origin": origin || "*",
     "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, X-Voz-Cookies",
+    "Access-Control-Allow-Headers": "Content-Type, X-Voz-Cookies, If-None-Match",
     "Access-Control-Max-Age": "86400",
   };
+}
+
+async function generateETag(body: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(body);
+  const hash = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hash));
+  return '"' + hashArray.slice(0, 16).map(b => b.toString(16).padStart(2, "0")).join("") + '"';
 }
 
 function jsonResponse(data: unknown, status = 200, origin?: string | null): Response {
@@ -43,6 +51,38 @@ function jsonResponse(data: unknown, status = 200, origin?: string | null): Resp
     status,
     headers: {
       "Content-Type": "application/json",
+      ...corsHeaders(origin),
+    },
+  });
+}
+
+async function cachedJsonResponse(
+  data: unknown,
+  origin: string | null | undefined,
+  request: Request,
+  maxAge = 60,
+): Promise<Response> {
+  const body = JSON.stringify(data);
+  const etag = await generateETag(body);
+
+  const ifNoneMatch = request.headers.get("If-None-Match");
+  if (ifNoneMatch && ifNoneMatch === etag) {
+    return new Response(null, {
+      status: 304,
+      headers: {
+        ETag: etag,
+        "Cache-Control": `public, max-age=${maxAge}`,
+        ...corsHeaders(origin),
+      },
+    });
+  }
+
+  return new Response(body, {
+    status: 200,
+    headers: {
+      "Content-Type": "application/json",
+      ETag: etag,
+      "Cache-Control": `public, max-age=${maxAge}`,
       ...corsHeaders(origin),
     },
   });
@@ -278,19 +318,19 @@ export default {
         // ── Forum data ──
         case "forums": {
           const html = await vozFetch("/", userCookies);
-          return jsonResponse(parseForums(html), 200, origin);
+          return cachedJsonResponse(parseForums(html), origin, request, 120);
         }
 
         case "box": {
           const page = Number(url.searchParams.get("page")) || 1;
           const html = await vozFetch(`/f/f.${route.params.id}/page-${page}`, userCookies);
-          return jsonResponse(parseBox(html, page), 200, origin);
+          return cachedJsonResponse(parseBox(html, page), origin, request, 60);
         }
 
         case "thread": {
           const page = Number(url.searchParams.get("page")) || 1;
           const html = await vozFetch(`/t/t.${route.params.id}/page-${page}`, userCookies);
-          return jsonResponse(parseThread(html, page), 200, origin);
+          return cachedJsonResponse(parseThread(html, page), origin, request, 30);
         }
 
         default:

@@ -1,4 +1,4 @@
-name: Deploy to Cloudflare
+name: Deploy to Cloudflare Pages
 
 on:
   push:
@@ -6,7 +6,6 @@ on:
 
 jobs:
   deploy:
-    # Skip if commit message contains skip_ci
     if: "!contains(github.event.head_commit.message, 'skip_ci')"
     runs-on: ubuntu-latest
 
@@ -18,20 +17,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: yarn
+          cache: npm
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: npm ci
 
-      - name: Build frontend
-        run: yarn build
-
-      - name: Deploy Worker
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy
+      - name: Build
+        run: npm run build
 
       - name: Deploy Pages
         uses: cloudflare/wrangler-action@v3

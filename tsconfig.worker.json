@@ -12,5 +12,5 @@
     "verbatimModuleSyntax": true,
     "isolatedModules": true
   },
-  "include": ["worker"]
+  "include": ["worker", "functions"]
 }

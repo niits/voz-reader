@@ -1,0 +1,1 @@
+{"root":["./worker/index.ts","./functions/api/_middleware.ts","./functions/api/cookies.ts","./functions/api/forums.ts","./functions/api/box/[id].ts","./functions/api/thread/[id].ts","./functions/lib/voz.ts"],"version":"5.9.3"}
