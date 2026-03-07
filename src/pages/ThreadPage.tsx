@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { fetchThread } from "../services/api";
 import type { Post, Pagination as PaginationType } from "../types";
@@ -19,7 +19,6 @@ export default function ThreadPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isCfError, setIsCfError] = useState(false);
-  const topRef = useRef<HTMLDivElement>(null);
 
   const hasPrev = pagination.current > 1;
   const hasNext = pagination.current < pagination.last;
@@ -62,11 +61,7 @@ export default function ThreadPage() {
   if (error) return <ErrorMessage message={error} onRetry={load} isCloudflareError={isCfError} />;
 
   return (
-    <div className="thread-page" ref={(el) => {
-      // Assign to both refs
-      (topRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
-      (containerRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
-    }}>
+    <div className="thread-page" ref={containerRef}>
       <SwipeIndicator
         direction={swipeState.direction}
         offsetX={swipeState.offsetX}

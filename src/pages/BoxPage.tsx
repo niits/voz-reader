@@ -5,8 +5,6 @@ import type { Thread, Pagination as PaginationType } from "../types";
 import Loading from "../components/Loading";
 import ErrorMessage from "../components/ErrorMessage";
 import PaginationComponent from "../components/Pagination";
-import SwipeIndicator from "../components/SwipeIndicator";
-import useSwipe from "../hooks/useSwipe";
 
 export default function BoxPage() {
   const { id } = useParams<{ id: string }>();
@@ -19,15 +17,6 @@ export default function BoxPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [isCfError, setIsCfError] = useState(false);
-
-  const hasPrev = pagination.current > 1;
-  const hasNext = pagination.current < pagination.last;
-
-  const { containerRef, swipeState } = useSwipe({
-    onSwipeRight: hasPrev ? `/box/${id}?page=${page - 1}` : undefined,
-    onSwipeLeft: hasNext ? `/box/${id}?page=${page + 1}` : undefined,
-    enabled: !loading && !error,
-  });
 
   const load = () => {
     if (!id) return;
@@ -64,12 +53,7 @@ export default function BoxPage() {
   const normalThreads = threads.filter((t) => !t.isSticky);
 
   return (
-    <div className="box-page" ref={containerRef}>
-      <SwipeIndicator
-        direction={swipeState.direction}
-        offsetX={swipeState.offsetX}
-        isSwiping={swipeState.isSwiping}
-      />
+    <div className="box-page">
       <div className="page-header">
         <Link to="/" className="breadcrumb">← Trang chủ</Link>
         <h1 className="page-title">{title}</h1>
