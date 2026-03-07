@@ -159,7 +159,7 @@ export function parseBox(html: string, page: number) {
   });
 
   const lastPage =
-    $(".pageNav-main .pageNav-page:last-of-type a").text().trim() || "1";
+    $(".pageNav-main .pageNav-page:last-of-type a").last().text().trim() || "1";
 
   return {
     title: forumTitle,
@@ -207,7 +207,7 @@ export function parseThread(html: string, page: number) {
   });
 
   const lastPage =
-    $(".pageNav-main .pageNav-page:last-of-type a").text().trim() || "1";
+    $(".pageNav-main .pageNav-page:last-of-type a").last().text().trim() || "1";
 
   return {
     title: threadTitle,
