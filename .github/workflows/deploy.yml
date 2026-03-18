@@ -26,7 +26,7 @@ jobs:
         run: yarn build
 
       - name: Deploy
-        run: yarn wrangler pages deploy dist --project-name=voz-reader --branch=main --commit-dirty=true
+        run: yarn wrangler pages deploy dist --project-name=voz-reader --branch=main --compatibility-date=2024-12-01 --compatibility-flags=nodejs_compat --commit-dirty=true
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
