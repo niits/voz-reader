@@ -1,4 +1,4 @@
-name: Deploy to Cloudflare Pages
+name: Deploy to Cloudflare Workers
 
 on:
   push:
@@ -25,9 +25,20 @@ jobs:
       - name: Build
         run: yarn build
 
-      - name: Deploy Pages
+      - name: Prepare deploy config
+        run: |
+          node -e "
+            const fs = require('fs');
+            const cfg = JSON.parse(fs.readFileSync('dist/server/wrangler.json', 'utf8'));
+            delete cfg.kv_namespaces;
+            delete cfg.images;
+            delete cfg.pages_build_output_dir;
+            fs.writeFileSync('dist/server/wrangler.json', JSON.stringify(cfg, null, 2));
+          "
+
+      - name: Deploy
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=voz-reader
+          command: deploy --config dist/server/wrangler.json

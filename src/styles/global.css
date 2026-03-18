@@ -1,0 +1,99 @@
+/* ===== CSS Reset & Base (Mobile-First) ===== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #0f0f0f;
+  --bg-card: #1a1a1a;
+  --bg-card-hover: #222;
+  --bg-header: #111;
+  --text: #e0e0e0;
+  --text-secondary: #888;
+  --text-muted: #555;
+  --accent: #4a9eff;
+  --accent-dim: #2d6bb5;
+  --border: #2a2a2a;
+  --border-light: #333;
+  --sticky-bg: #1c1c0e;
+  --prefix-bg: #333;
+  --prefix-text: #ccc;
+  --danger: #e74c3c;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+
+  /* Touch target sizes (Apple HIG: 44pt minimum) */
+  --touch-min: 44px;
+
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text);
+  background-color: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  text-rendering: optimizeLegibility;
+}
+
+html {
+  scroll-behavior: smooth;
+  overflow-y: scroll;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overscroll-behavior-y: contain;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+a:active {
+  opacity: 0.7;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+  border: none;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Smooth touch scrolling */
+.main {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* iOS momentum scrolling for all scrollable areas */
+@supports (-webkit-touch-callout: none) {
+  /* iOS-specific styles */
+  input, textarea {
+    font-size: 16px; /* Prevents iOS zoom on focus */
+  }
+}

@@ -215,39 +215,3 @@ export function parseThread(html: string, page: number) {
     pagination: { current: page, last: Number(lastPage) },
   };
 }
-
-// ── Response helpers ──
-
-export function jsonOk(data: unknown, maxAge = 60): Response {
-  const body = JSON.stringify(data);
-  return new Response(body, {
-    status: 200,
-    headers: {
-      "Content-Type": "application/json",
-      "Cache-Control": `public, max-age=${maxAge}`,
-    },
-  });
-}
-
-export function jsonError(
-  error: string,
-  status = 500,
-  code?: string
-): Response {
-  return new Response(JSON.stringify({ error, ...(code && { code }) }), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
-}
-
-export function handleVozError(e: unknown): Response {
-  const msg = e instanceof Error ? e.message : "Unknown error";
-  if (msg === "CLOUDFLARE_BLOCKED") {
-    return jsonError(
-      "Bị Cloudflare chặn. Vui lòng cập nhật cookie từ trình duyệt.",
-      403,
-      "CLOUDFLARE_BLOCKED"
-    );
-  }
-  return jsonError(`Server error: ${msg}`, 500);
-}

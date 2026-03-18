@@ -1,0 +1,140 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { cachedFetch } from '../../lib/cache';
+import { vozFetch, parseThread } from '../../lib/voz';
+
+const { id } = Astro.params;
+const page = Number(Astro.url.searchParams.get('page')) || 1;
+const cookies = Astro.cookies.get('voz_session')?.value ?? '';
+
+type ThreadData = Awaited<ReturnType<typeof parseThread>>;
+let threadData: ThreadData | null = null;
+let error = '';
+let isCfError = false;
+
+try {
+  threadData = await cachedFetch(
+    `thread:${id}:${page}`,
+    'thread',
+    async () => {
+      const html = await vozFetch(`/t/t.${id}/page-${page}`, cookies || undefined);
+      return parseThread(html, page);
+    },
+    cookies || undefined,
+  );
+} catch (e) {
+  const msg = e instanceof Error ? e.message : 'Unknown';
+  isCfError = msg === 'CLOUDFLARE_BLOCKED';
+  error = isCfError ? 'Bị Cloudflare chặn.' : 'Không thể tải thread.';
+}
+
+const posts = threadData?.posts ?? [];
+const pagination = threadData?.pagination ?? { current: page, last: 1 };
+const title = threadData?.title ?? '';
+
+function buildPageLink(p: number) {
+  return `/thread/${id}?page=${p}`;
+}
+
+function buildPagination(current: number, last: number) {
+  const pages: (number | '...')[] = [1];
+  if (current > 3) pages.push('...');
+  for (let i = Math.max(2, current - 1); i <= Math.min(last - 1, current + 1); i++) {
+    pages.push(i);
+  }
+  if (current < last - 2) pages.push('...');
+  if (last > 1) pages.push(last);
+  return pages;
+}
+---
+
+<Layout title={title || 'Thread'}>
+  {error ? (
+    <div class="error-container">
+      <div class="error-icon">⚠️</div>
+      <p class="error-text">{error}</p>
+      {isCfError && (
+        <p class="error-sub">Bạn cần <a href="/settings">cập nhật cookie</a> từ trình duyệt.</p>
+      )}
+      <a href={`/thread/${id}?page=${page}`} class="btn btn-primary">Thử lại</a>
+    </div>
+  ) : (
+    <div class="thread-page">
+      <div class="page-header">
+        <button class="breadcrumb" onclick="window.history.back()">← Quay lại</button>
+        <h1 class="page-title">{title}</h1>
+        <div class="page-info">Trang {pagination.current}/{pagination.last}</div>
+      </div>
+
+      {pagination.last > 1 && (
+        <nav class="pagination">
+          {pagination.current > 1 && (
+            <a href={buildPageLink(pagination.current - 1)} class="pagination-btn">‹</a>
+          )}
+          {buildPagination(pagination.current, pagination.last).map((p) =>
+            p === '...'
+              ? <span class="pagination-ellipsis">…</span>
+              : <a href={buildPageLink(p as number)} class={`pagination-btn${p === pagination.current ? ' active' : ''}`}>{p}</a>
+          )}
+          {pagination.current < pagination.last && (
+            <a href={buildPageLink(pagination.current + 1)} class="pagination-btn">›</a>
+          )}
+        </nav>
+      )}
+
+      <div class="posts">
+        {posts.map((post) => (
+          <article class="post" id={`post-${post.id}`}>
+            <div class="post-header">
+              <div class="post-author-info">
+                {post.avatar && (
+                  <img
+                    src={post.avatar}
+                    alt={post.author}
+                    class="post-avatar"
+                    loading="lazy"
+                  />
+                )}
+                <span class="post-author">{post.author}</span>
+              </div>
+              <div class="post-meta">
+                <span class="post-number">{post.postNumber}</span>
+                <time class="post-date">
+                  {post.date
+                    ? new Date(post.date).toLocaleString('vi-VN', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })
+                    : ''}
+                </time>
+              </div>
+            </div>
+            <div class="post-content" set:html={post.contentHtml} />
+            {post.reactions && (
+              <div class="post-reactions">{post.reactions}</div>
+            )}
+          </article>
+        ))}
+      </div>
+
+      {pagination.last > 1 && (
+        <nav class="pagination">
+          {pagination.current > 1 && (
+            <a href={buildPageLink(pagination.current - 1)} class="pagination-btn">‹</a>
+          )}
+          {buildPagination(pagination.current, pagination.last).map((p) =>
+            p === '...'
+              ? <span class="pagination-ellipsis">…</span>
+              : <a href={buildPageLink(p as number)} class={`pagination-btn${p === pagination.current ? ' active' : ''}`}>{p}</a>
+          )}
+          {pagination.current < pagination.last && (
+            <a href={buildPageLink(pagination.current + 1)} class="pagination-btn">›</a>
+          )}
+        </nav>
+      )}
+    </div>
+  )}
+</Layout>

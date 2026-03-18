@@ -1,5 +1,3 @@
-import { Link } from "react-router-dom";
-
 interface Props {
   current: number;
   last: number;
@@ -27,9 +25,9 @@ export default function Pagination({ current, last, buildLink }: Props) {
   return (
     <nav className="pagination">
       {current > 1 && (
-        <Link to={buildLink(current - 1)} className="pagination-btn">
+        <a href={buildLink(current - 1)} className="pagination-btn">
           ‹
-        </Link>
+        </a>
       )}
       {pages.map((p, i) =>
         p === "..." ? (
@@ -37,19 +35,19 @@ export default function Pagination({ current, last, buildLink }: Props) {
             …
           </span>
         ) : (
-          <Link
+          <a
             key={p}
-            to={buildLink(p)}
+            href={buildLink(p)}
             className={`pagination-btn ${p === current ? "active" : ""}`}
           >
             {p}
-          </Link>
+          </a>
         )
       )}
       {current < last && (
-        <Link to={buildLink(current + 1)} className="pagination-btn">
+        <a href={buildLink(current + 1)} className="pagination-btn">
           ›
-        </Link>
+        </a>
       )}
     </nav>
   );

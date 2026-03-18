@@ -1,5 +1,3 @@
-import { Link } from "react-router-dom";
-
 interface Props {
   message?: string;
   onRetry?: () => void;
@@ -13,9 +11,9 @@ export default function ErrorMessage({ message, onRetry, isCloudflareError }: Pr
       {isCloudflareError && (
         <p style={{ fontSize: 13, marginBottom: 12 }}>
           Voz.vn bị Cloudflare bảo vệ. Bạn cần{" "}
-          <Link to="/settings" style={{ fontWeight: 600 }}>
+          <a href="/settings" style={{ fontWeight: 600 }}>
             cập nhật cookie
-          </Link>{" "}
+          </a>{" "}
           từ trình duyệt để tiếp tục đọc.
         </p>
       )}
