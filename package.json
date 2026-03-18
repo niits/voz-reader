@@ -4,31 +4,17 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
-    "preview": "astro preview",
-    "deploy": "astro build && wrangler pages deploy dist",
+    "build": "node build.mjs && cp -r public/styles dist/styles",
+    "dev": "wrangler pages dev dist --compatibility-flag=nodejs_compat",
     "lint": "eslint ."
   },
   "dependencies": {
-    "@astrojs/cloudflare": "^13.1.2",
-    "@astrojs/react": "^5.0.0",
-    "astro": "^6.0.5",
     "cheerio": "^1.2.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "hono": "^4.7.7"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260307.1",
-    "@eslint/js": "^9.39.1",
-    "@types/react": "^19.2.7",
-    "@types/react-dom": "^19.2.3",
-    "eslint": "^9.39.1",
-    "eslint-plugin-react-hooks": "^7.0.1",
-    "eslint-plugin-react-refresh": "^0.4.24",
-    "globals": "^16.5.0",
-    "typescript": "~5.9.3",
-    "typescript-eslint": "^8.48.0",
+    "esbuild": "^0.25.0",
     "wrangler": "^4.71.0"
   }
 }

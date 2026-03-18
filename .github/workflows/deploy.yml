@@ -25,27 +25,9 @@ jobs:
       - name: Build
         run: yarn build
 
-      - name: Prepare Pages config
-        run: |
-          node -e "
-            const fs = require('fs');
-            const cfg = JSON.parse(fs.readFileSync('dist/server/wrangler.json', 'utf8'));
-            cfg.pages_build_output_dir = '../client';
-            delete cfg.kv_namespaces;
-            fs.writeFileSync('dist/server/wrangler.json', JSON.stringify(cfg, null, 2));
-          "
-
-      - name: Create Pages project if not exists
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages project create voz-reader --production-branch=main
-        continue-on-error: true
-
       - name: Deploy
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy --config dist/server/wrangler.json --project-name=voz-reader --commit-dirty=true
+          command: pages deploy dist --project-name=voz-reader --commit-dirty=true
