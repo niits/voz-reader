@@ -159,4 +159,7 @@ app.post('/settings/clear', (c) => {
   return c.redirect('/settings?status=cleared&msg=Đã+xoá+cookie.');
 });
 
+// Static assets (CSS, etc.)
+app.all('*', (c) => c.env.ASSETS.fetch(c.req.raw));
+
 export default app;
