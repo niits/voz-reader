@@ -8,7 +8,7 @@ await build({
   bundle: true,
   outfile: 'dist/_worker.js',
   format: 'esm',
-  platform: 'node',
+  platform: 'browser',
   external: ['cloudflare:*', '__STATIC_CONTENT_MANIFEST', 'node:*'],
   jsx: 'automatic',
   jsxImportSource: 'hono/jsx',

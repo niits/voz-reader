@@ -1,4 +1,4 @@
-import * as cheerio from "cheerio";
+import { parse } from 'node-html-parser';
 
 const VOZ_BASE = "https://voz.vn";
 
@@ -50,7 +50,7 @@ export async function vozFetch(
 // ── Parsers ──
 
 export function parseForums(html: string) {
-  const $ = cheerio.load(html);
+  const root = parse(html);
 
   const categories: {
     title: string;
@@ -63,38 +63,35 @@ export function parseForums(html: string) {
     }[];
   }[] = [];
 
-  $(".block--category").each((_i, block) => {
-    const catTitle =
-      $(block).find(".block-header h2, .block-header a").first().text().trim() ||
-      "Khác";
+  root.querySelectorAll(".block--category").forEach((block) => {
+    const catTitleEl =
+      block.querySelector(".block-header h2") ||
+      block.querySelector(".block-header a");
+    const catTitle = catTitleEl?.text.trim() || "Khác";
 
     const forums: (typeof categories)[0]["forums"] = [];
 
-    $(block)
-      .find(".node--forum, .node--link")
-      .each((_j, node) => {
-        const $node = $(node);
-        const titleEl = $node.find(".node-title a").first();
-        const title = titleEl.text().trim();
-        const href = titleEl.attr("href") || "";
-        const id = href.match(/\.(\d+)\/?$/)?.[1] || "";
-        const description = $node.find(".node-description").text().trim();
+    block.querySelectorAll(".node--forum, .node--link").forEach((node) => {
+      const titleEl = node.querySelector(".node-title a");
+      const title = titleEl?.text.trim() || "";
+      const href = titleEl?.getAttribute("href") || "";
+      const id = href.match(/\.(\d+)\/?$/)?.[1] || "";
+      const description = node.querySelector(".node-description")?.text.trim() || "";
 
-        const subForums: { id: string; title: string; href: string }[] = [];
-        $node.find(".node-subNodeList a").each((_k, sub) => {
-          const $sub = $(sub);
-          const subHref = $sub.attr("href") || "";
-          subForums.push({
-            id: subHref.match(/\.(\d+)\/?$/)?.[1] || "",
-            title: $sub.text().trim(),
-            href: subHref,
-          });
+      const subForums: { id: string; title: string; href: string }[] = [];
+      node.querySelectorAll(".node-subNodeList a").forEach((sub) => {
+        const subHref = sub.getAttribute("href") || "";
+        subForums.push({
+          id: subHref.match(/\.(\d+)\/?$/)?.[1] || "",
+          title: sub.text.trim(),
+          href: subHref,
         });
-
-        if (title) {
-          forums.push({ id, title, href, description, subForums });
-        }
       });
+
+      if (title) {
+        forums.push({ id, title, href, description, subForums });
+      }
+    });
 
     if (forums.length > 0) {
       categories.push({ title: catTitle, forums });
@@ -105,8 +102,8 @@ export function parseForums(html: string) {
 }
 
 export function parseBox(html: string, page: number) {
-  const $ = cheerio.load(html);
-  const forumTitle = $("h1.p-title-value").text().trim();
+  const root = parse(html);
+  const forumTitle = root.querySelector("h1.p-title-value")?.text.trim() || "";
 
   const threads: {
     id: string;
@@ -120,46 +117,36 @@ export function parseBox(html: string, page: number) {
     isPrefix: string;
   }[] = [];
 
-  $(".structItem--thread").each((_i, el) => {
-    const $el = $(el);
-    const titleEl = $el
-      .find(".structItem-title a:not(.labelLink)")
-      .first();
-    const title = titleEl.text().trim();
-    const href = titleEl.attr("href") || "";
+  root.querySelectorAll(".structItem--thread").forEach((el) => {
+    const titleEl = el.querySelector(".structItem-title a:not(.labelLink)");
+    const title = titleEl?.text.trim() || "";
+    const href = titleEl?.getAttribute("href") || "";
     const id = href.match(/\.(\d+)\/?$/)?.[1] || "";
-    const author = $el
-      .find(".structItem-minor .username")
-      .first()
-      .text()
-      .trim();
-    const replies = $el
-      .find("dl.pairs--justified:first-of-type dd")
-      .first()
-      .text()
-      .trim();
-    const views = $el
-      .find("dl.pairs--justified:nth-of-type(2) dd")
-      .first()
-      .text()
-      .trim();
+    const author = el.querySelector(".structItem-minor .username")?.text.trim() || "";
+
+    const dls = el.querySelectorAll("dl.pairs--justified");
+    const replies = dls[0]?.querySelector("dd")?.text.trim() || "";
+    const views = dls[1]?.querySelector("dd")?.text.trim() || "";
+
     const lastDate =
-      $el.find(".structItem-latestDate time").attr("datetime") ||
-      $el.find(".structItem-latestDate").text().trim();
+      el.querySelector(".structItem-latestDate time")?.getAttribute("datetime") ||
+      el.querySelector(".structItem-latestDate")?.text.trim() || "";
+
+    const cls = el.getAttribute("class") || "";
     const isSticky =
-      $el.hasClass("is-sticky") ||
-      $el.find(".structItem-status--sticky").length > 0;
-    const isPrefix = $el.find(".label, .labelLink").first().text().trim();
+      cls.includes("is-sticky") ||
+      el.querySelector(".structItem-status--sticky") !== null;
+
+    const isPrefix = el.querySelector(".label, .labelLink")?.text.trim() || "";
 
     if (title) {
-      threads.push({
-        id, title, href, author, replies, views, lastDate, isSticky, isPrefix,
-      });
+      threads.push({ id, title, href, author, replies, views, lastDate, isSticky, isPrefix });
     }
   });
 
+  const pageNavItems = root.querySelectorAll(".pageNav-main .pageNav-page");
   const lastPage =
-    $(".pageNav-main .pageNav-page:last-of-type a").last().text().trim() || "1";
+    pageNavItems[pageNavItems.length - 1]?.querySelector("a")?.text.trim() || "1";
 
   return {
     title: forumTitle,
@@ -169,8 +156,8 @@ export function parseBox(html: string, page: number) {
 }
 
 export function parseThread(html: string, page: number) {
-  const $ = cheerio.load(html);
-  const threadTitle = $("h1.p-title-value").text().trim();
+  const root = parse(html);
+  const threadTitle = root.querySelector("h1.p-title-value")?.text.trim() || "";
 
   const posts: {
     id: string;
@@ -182,32 +169,28 @@ export function parseThread(html: string, page: number) {
     postNumber: string;
   }[] = [];
 
-  $("article.message").each((_i, el) => {
-    const $el = $(el);
-    const id = $el.attr("data-content")?.replace("post-", "") || "";
-    const author = $el
-      .find(".message-name a, .message-name span")
-      .first()
-      .text()
-      .trim();
-    let avatar = $el.find(".message-avatar img").attr("src") || "";
+  root.querySelectorAll("article.message").forEach((el) => {
+    const id = el.getAttribute("data-content")?.replace("post-", "") || "";
+    const author =
+      el.querySelector(".message-name a")?.text.trim() ||
+      el.querySelector(".message-name span")?.text.trim() || "";
+    let avatar = el.querySelector(".message-avatar img")?.getAttribute("src") || "";
     if (avatar && !avatar.startsWith("http")) avatar = absUrl(avatar);
     const date =
-      $el.find("time.u-dt").attr("datetime") ||
-      $el.find("time").text().trim();
+      el.querySelector("time.u-dt")?.getAttribute("datetime") ||
+      el.querySelector("time")?.text.trim() || "";
     const contentHtml =
-      $el.find(".message-body .bbWrapper").first().html() || "";
-    const reactions = $el.find(".reactionsBar").text().trim();
-    const postNumber = $el
-      .find(".message-attribution-opposite a:last-child")
-      .text()
-      .trim();
+      el.querySelector(".message-body .bbWrapper")?.innerHTML || "";
+    const reactions = el.querySelector(".reactionsBar")?.text.trim() || "";
+    const postNumber =
+      el.querySelector(".message-attribution-opposite a:last-child")?.text.trim() || "";
 
     posts.push({ id, author, avatar, date, contentHtml, reactions, postNumber });
   });
 
+  const pageNavItems = root.querySelectorAll(".pageNav-main .pageNav-page");
   const lastPage =
-    $(".pageNav-main .pageNav-page:last-of-type a").last().text().trim() || "1";
+    pageNavItems[pageNavItems.length - 1]?.querySelector("a")?.text.trim() || "1";
 
   return {
     title: threadTitle,
