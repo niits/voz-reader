@@ -159,6 +159,69 @@ app.post('/settings/clear', (c) => {
   return c.redirect('/settings?status=cleared&msg=Đã+xoá+cookie.');
 });
 
+// Attachment proxy
+const MAX_PROXY_SIZE = 2 * 1024 * 1024; // 2MB
+
+const PLACEHOLDER_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="240" height="80" viewBox="0 0 240 80">
+  <rect width="240" height="80" rx="6" fill="#1a1a1a" stroke="#2a2a2a"/>
+  <text x="120" y="36" text-anchor="middle" fill="#555" font-size="12" font-family="sans-serif">⛔ File quá lớn</text>
+  <text x="120" y="54" text-anchor="middle" fill="#444" font-size="11" font-family="sans-serif">Không thể tải ảnh</text>
+</svg>`;
+
+app.get('/proxy', async (c) => {
+  const url = c.req.query('url') ?? '';
+
+  if (!url.startsWith('https://voz.vn/attachments/')) {
+    return c.text('Forbidden', 403);
+  }
+
+  // Cache check
+  const cache = (caches as unknown as { default: Cache }).default;
+  const cacheReq = new Request(`https://proxy.internal/${encodeURIComponent(url)}`);
+  const cached = await cache.match(cacheReq);
+  if (cached) return cached;
+
+  // HEAD to check size before fetching body
+  try {
+    const head = await fetch(url, {
+      method: 'HEAD',
+      headers: { 'User-Agent': 'Mozilla/5.0', Referer: 'https://voz.vn/' },
+    });
+    const contentLength = Number(head.headers.get('content-length') ?? 0);
+    if (contentLength > MAX_PROXY_SIZE) {
+      return new Response(PLACEHOLDER_SVG, {
+        headers: { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'public, max-age=3600' },
+      });
+    }
+  } catch { /* ignore HEAD errors, attempt full fetch */ }
+
+  // Fetch body
+  const res = await fetch(url, {
+    headers: { 'User-Agent': 'Mozilla/5.0', Referer: 'https://voz.vn/' },
+  });
+
+  if (!res.ok) return c.text('Not found', 404);
+
+  const body = await res.arrayBuffer();
+
+  if (body.byteLength > MAX_PROXY_SIZE) {
+    return new Response(PLACEHOLDER_SVG, {
+      headers: { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'public, max-age=3600' },
+    });
+  }
+
+  const contentType = res.headers.get('content-type') ?? 'image/jpeg';
+  const response = new Response(body, {
+    headers: {
+      'Content-Type': contentType,
+      'Cache-Control': 'public, max-age=86400',
+    },
+  });
+
+  c.executionCtx.waitUntil(cache.put(cacheReq, response.clone()));
+  return response;
+});
+
 // Static assets (CSS, etc.)
 app.all('*', (c) => c.env.ASSETS.fetch(c.req.raw));
 

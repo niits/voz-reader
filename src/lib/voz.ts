@@ -179,8 +179,12 @@ export function parseThread(html: string, page: number) {
     const date =
       el.querySelector("time.u-dt")?.getAttribute("datetime") ||
       el.querySelector("time")?.text.trim() || "";
-    const contentHtml =
-      el.querySelector(".message-body .bbWrapper")?.innerHTML || "";
+    const rawHtml = el.querySelector(".message-body .bbWrapper")?.innerHTML || "";
+    // Proxy voz.vn attachments — browser can't load them directly
+    const contentHtml = rawHtml.replace(
+      /data-src="(https:\/\/voz\.vn\/attachments\/[^"]+)"/g,
+      (_, url) => `src="/proxy?url=${encodeURIComponent(url)}"`
+    );
     const reactions = el.querySelector(".reactionsBar")?.text.trim() || "";
     const postNumber =
       el.querySelector(".message-attribution-opposite a:last-child")?.text.trim() || "";
