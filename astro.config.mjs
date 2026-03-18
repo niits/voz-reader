@@ -5,6 +5,7 @@ import react from '@astrojs/react';
 export default defineConfig({
   output: 'server',
   adapter: cloudflare({
+    mode: 'pages',
     imageService: 'passthrough',
     platformProxy: { enabled: true },
   }),
