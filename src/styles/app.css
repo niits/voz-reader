@@ -446,6 +446,10 @@
   cursor: pointer;
 }
 
+.post-content .bbCodeSpoiler-content {
+  display: none;
+}
+
 .post-content iframe,
 .post-content video {
   max-width: 100%;

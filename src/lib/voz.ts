@@ -181,10 +181,16 @@ export function parseThread(html: string, page: number) {
       el.querySelector("time")?.text.trim() || "";
     const rawHtml = el.querySelector(".message-body .bbWrapper")?.innerHTML || "";
     // Proxy voz.vn attachments — browser can't load them directly
-    const contentHtml = rawHtml.replace(
-      /data-src="(https:\/\/voz\.vn\/attachments\/[^"]+)"/g,
-      (_, url) => `src="/proxy?url=${encodeURIComponent(url)}"`
-    );
+    // Rewrite quote jump links (go to) from voz.vn to reader
+    const contentHtml = rawHtml
+      .replace(
+        /data-src="(https:\/\/voz\.vn\/attachments\/[^"]+)"/g,
+        (_, url) => `src="/proxy?url=${encodeURIComponent(url)}"`
+      )
+      .replace(
+        /href="https:\/\/voz\.vn\/t\/[^.]+\.(\d+)(?:\/[^"]*)?"(\s[^>]*)?>/g,
+        (_, threadId, rest) => `href="/thread/${threadId}"${rest || ""}>`
+      );
     const reactions = el.querySelector(".reactionsBar")?.text.trim() || "";
     const postNumber =
       el.querySelector(".message-attribution-opposite a:last-child")?.text.trim() || "";

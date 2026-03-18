@@ -40,6 +40,14 @@ export const Layout: FC<PropsWithChildren<LayoutProps>> = ({ title = 'VOZ Reader
         <script dangerouslySetInnerHTML={{ __html: `
           const bar = document.getElementById('nav-bar');
           document.addEventListener('click', (e) => {
+            const spoilerBtn = e.target.closest('.bbCodeSpoiler-button');
+            if (spoilerBtn) {
+              const content = spoilerBtn.closest('.bbCodeSpoiler')?.querySelector('.bbCodeSpoiler-content');
+              if (content) {
+                content.style.display = content.style.display === 'none' ? '' : 'none';
+              }
+              return;
+            }
             const link = e.target.closest('a[href]');
             if (!link) return;
             const href = link.getAttribute('href') || '';
