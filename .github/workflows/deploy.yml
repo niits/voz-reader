@@ -25,9 +25,17 @@ jobs:
       - name: Build
         run: yarn build
 
+      - name: Create Pages project if not exists
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages project create voz-reader --production-branch=main
+        continue-on-error: true
+
       - name: Deploy
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=voz-reader
+          command: pages deploy dist --project-name=voz-reader --commit-dirty=true
