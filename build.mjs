@@ -13,6 +13,7 @@ await build({
   jsx: 'automatic',
   jsxImportSource: 'hono/jsx',
   minify: true,
+  loader: { '.css': 'text' },
 });
 
 console.log('Build complete → dist/_worker.js');

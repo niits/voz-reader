@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "build": "node build.mjs && cp -r public/styles dist/styles",
+    "build": "node build.mjs",
     "dev": "wrangler pages dev dist --compatibility-flag=nodejs_compat",
     "lint": "eslint ."
   },

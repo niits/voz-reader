@@ -1,4 +1,6 @@
 import type { FC, PropsWithChildren } from 'hono/jsx';
+import globalCss from '../styles/global.css';
+import appCss from '../styles/app.css';
 
 interface LayoutProps {
   title?: string;
@@ -14,8 +16,7 @@ export const Layout: FC<PropsWithChildren<LayoutProps>> = ({ title = 'VOZ Reader
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <title>{title}</title>
-        <link rel="stylesheet" href="/styles/global.css" />
-        <link rel="stylesheet" href="/styles/app.css" />
+        <style dangerouslySetInnerHTML={{ __html: globalCss + appCss }} />
       </head>
       <body>
         <div class="nav-loading-bar" id="nav-bar"></div>
